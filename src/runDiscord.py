@@ -119,7 +119,7 @@ class DiscordClient(discord.Client):
                 return
         
         # Don't trigger this when bot messages are deleted
-        if(before.author.id == client.user.id):
+        if(message.author.id == client.user.id):
             return
         
         log_channel_id = config.log_channels.get(message.guild.id)
