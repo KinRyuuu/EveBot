@@ -23,3 +23,7 @@ Installation:
 - run `pip install -r requirements.txt` to install dependencies.
 - create apikeys.py and add your bot token as a "discordkey" variable
 - run `python src/runDiscord.py` to run the bot
+
+Current Features:
+- logs message edits and deletes per server to a channel specified in config.py
+- can run locally, in debug on discord (in specified debug channels), or in production on discord

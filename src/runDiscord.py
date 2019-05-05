@@ -113,6 +113,15 @@ class DiscordClient(discord.Client):
 
     async def on_message_delete(self, message):
         
+        # runs only on debug channels if debug is enabled.
+        if config.DEBUG:
+            if message.channel.id not in config.debug_channel_ids:
+                return
+        
+        # Don't trigger this when bot messages are deleted
+        if(before.author.id == client.user.id):
+            return
+        
         log_channel_id = config.log_channels.get(message.guild.id)
         log_channel = discord.utils.get(message.guild.text_channels, id=log_channel_id)
         embed = discord.Embed(title="Message Deleted",
@@ -142,10 +151,15 @@ class DiscordClient(discord.Client):
             logger.error("Do not have permissions to log deleted message. " + str(e))
 
     async def on_message_edit(self, before, after):
-        # Don't trigger this when bot messages are deleted to avoid loops
+
+        # runs only on debug channels if debug is enabled.
+        if config.DEBUG:
+            if message.channel.id not in config.debug_channel_ids:
+                return
+
+        # Don't trigger this when bot messages are edited to avoid loops
         if(before.author.id == client.user.id):
             return
-
 
         # Work around for weird behaviour where the edit event gets called twice (the second time with blank message content)
         if(before.content == "" and after.content == ""):
