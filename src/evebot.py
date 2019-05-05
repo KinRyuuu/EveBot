@@ -1,6 +1,16 @@
 from helpers import commandHelpers
 import commandRegistry
 import re
+import config
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Only log debug messages in debug mode
+if (config.DEBUG):
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
 
 class EveBot:
     
@@ -28,7 +38,7 @@ class EveBot:
                 try:
                     return await allCommands[command[0]](command, metadata, sendReply)
                 except KeyError as err:
-                    print("Couldn't find command " + str(err))
+                    logger.debug("Couldn't find command " + str(err))
             
             # Scan message looking for content to react to
             return await self.doReacts(allReactions, message, metadata, sendReply)

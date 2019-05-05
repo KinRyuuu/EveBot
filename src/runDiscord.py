@@ -112,6 +112,7 @@ class DiscordClient(discord.Client):
                 logger.error("Error reading message: " + str(e))
 
     async def on_message_delete(self, message):
+        
         log_channel_id = config.log_channels.get(message.guild.id)
         log_channel = discord.utils.get(message.guild.text_channels, id=log_channel_id)
         embed = discord.Embed(title="Message Deleted",
@@ -120,6 +121,9 @@ class DiscordClient(discord.Client):
                                   author=message.author.name,
                                   channel=message.channel.name),
                               colour=0xff0000)
+
+        if(message.content == ""):
+            message.content = "None"
 
         embed.add_field(name="User", value = message.author.name, inline=False)
         embed.add_field(name="ID", value = str(message.author.id), inline=False)
@@ -131,13 +135,23 @@ class DiscordClient(discord.Client):
                 embed.add_field(name="Attachment", value=attachment.proxy_url + "\n", inline=False)
         
         try:
-            await log_channel.send("", embed=embed)
+            await log_channel.send(embed=embed)
         except discord.HTTPException as e:
             logger.error("Could not log deleted message. " + str(e))
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log deleted message. " + str(e))
 
     async def on_message_edit(self, before, after):
+        # Don't trigger this when bot messages are deleted to avoid loops
+        if(before.author.id == client.user.id):
+            return
+
+
+        # Work around for weird behaviour where the edit event gets called twice (the second time with blank message content)
+        if(before.content == "" and after.content == ""):
+            before.content = "None"
+            after.content = "None"
+        
         log_channel_id = config.log_channels.get(before.guild.id)
         log_channel = discord.utils.get(before.guild.text_channels, id=log_channel_id)
         embed = discord.Embed(title="Message Editeed", 
@@ -150,13 +164,13 @@ class DiscordClient(discord.Client):
         embed.add_field(name="User", value = before.author.name, inline = False)
         embed.add_field(name="ID", value = str(before.author.id), inline = False)
         embed.add_field(name="Channel", value = before.channel.name, inline = False)
-        embed.add_field(name="Original message", value = before.content, inline = False)
+        embed.add_field(name="Original message", value = str(before.content), inline = False)
         embed.add_field(name="Original date", value = str(before.created_at), inline = False)
         embed.add_field(name="Edited Message", value = after.content, inline = False)
         embed.add_field(name="Edited date", value = str(after.created_at), inline = False)
         
         try:
-            await log_channel.send("", embed=embed)
+            await log_channel.send(embed=embed)
         except discord.HTTPException as e:
             logger.error("Could not log edited message. " + str(e))
         except discord.Forbidden as e:

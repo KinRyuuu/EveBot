@@ -1,11 +1,5 @@
-from helpers import basicResponseHelpers, commandHelpers
-import config
 import commandRegistry
-import os
-import re
 import asyncio
-from models import Service, Server, Chat, User, get_or_create 
-from sqlalchemy import func
 
 commands = {}
 command = commandRegistry.command
