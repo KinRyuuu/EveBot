@@ -17,3 +17,9 @@ File Structure:
 - The commands folder contains files containing bot commands which will be automatically registered and loaded
 - the helpers folder contains helpful functions for processing commands/files
 - the responses folder can be used to contain text files used to respond to specific commands.
+
+Installation:
+- create and activate a new python 3.7 virtualenv using `virtualenv venv && source venv/bin/activate` or similar.
+- run `pip install -r requirements.txt` to install dependencies.
+- create apikeys.py and add your bot token as a "discordkey" variable
+- run `python src/runDiscord.py` to run the bot
