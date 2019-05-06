@@ -9,6 +9,7 @@ import config
 import logging
 from string import Template
 from models import Service, Server, Chat, User, Session, get_or_create
+from helpers import commandHelpers
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,9 @@ else:
     logging.basicConfig(level=logging.INFO)
 
 class DiscordClient(discord.Client):
+    def __init__(self):
+        self.eve = None
+        super().__init__()
 
     # Sets up the bot and makes sure it knows who it is.
     async def on_ready(self):
@@ -56,7 +60,7 @@ class DiscordClient(discord.Client):
             return
 
         # if someone trying to run a command is not authorised, return
-        if(commandHelpers.is_command(message.content) and message.author.id not in config.approved_roles.get(message.guild.id, [])):
+        if(commandHelpers.is_command(message.content) and not hasApprovedRole(message.author)):
             return
 
         # Processes messages from commands and handles errors.
@@ -194,6 +198,13 @@ class DiscordClient(discord.Client):
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log edited message. " + str(e))
 
+
+def hasApprovedRole(discordUser):
+    for role in discordUser.roles:
+        if role.id in config.approved_roles.get(discordUser.guild.id, []):
+            return True
+
+    return False
 
 if (__name__ == "__main__"):
     client = DiscordClient()
