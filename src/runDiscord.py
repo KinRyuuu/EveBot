@@ -55,6 +55,10 @@ class DiscordClient(discord.Client):
         if message.author.bot == True:
             return
 
+        # if someone trying to run a command is not authorised, return
+        if(commandHelpers.is_command(message.content) and message.author.id not in config.approved_roles.get(message.guild.id, [])):
+            return
+
         # Processes messages from commands and handles errors.
         async def sendReply(text, edit=False, append=False, **kwargs):
             # Attempts to send a message up to MAX_RETRY times because sometimes discord is rubbish
