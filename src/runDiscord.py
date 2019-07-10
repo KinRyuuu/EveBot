@@ -142,9 +142,9 @@ class DiscordClient(discord.Client):
         if(message.content == ""):
             message.content = "None"
 
-        embed.add_field(name="User", value = message.author.name, inline=False)
+        embed.add_field(name="User", value = message.author.name + "#" + message.author.discriminator, inline=False)
         embed.add_field(name="ID", value = str(message.author.id), inline=False)
-        embed.add_field(name="Channel", value = message.channel.name, inline=False)
+        embed.add_field(name="Channel", value = "<#"+str(message.channel.id)+">", inline=False)
         embed.add_field(name="Content", value = message.content, inline=False)
         
         if(len(message.attachments) > 0):
@@ -173,6 +173,10 @@ class DiscordClient(discord.Client):
         if(before.content == "" and after.content == ""):
             before.content = "None"
             after.content = "None"
+
+        # Work around for weird behaviour where the edit event gets called after discord updates link previews
+        if(before.content == after.content):
+            return
         
         log_channel_id = config.log_channels.get(before.guild.id)
         log_channel = discord.utils.get(before.guild.text_channels, id=log_channel_id)
@@ -183,9 +187,9 @@ class DiscordClient(discord.Client):
                                   channel=before.channel.name),
                               colour=0xffff00)
 
-        embed.add_field(name="User", value = before.author.name, inline = False)
+        embed.add_field(name="User", value = before.author.name + "#" + before.author.discriminator, inline = False)
         embed.add_field(name="ID", value = str(before.author.id), inline = False)
-        embed.add_field(name="Channel", value = before.channel.name, inline = False)
+        embed.add_field(name="Channel", value = "<#"+str(before.channel.id)+">", inline = False)
         embed.add_field(name="Original message", value = str(before.content), inline = False)
         embed.add_field(name="Original date", value = str(before.created_at), inline = False)
         embed.add_field(name="Edited Message", value = after.content, inline = False)
