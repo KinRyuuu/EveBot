@@ -202,6 +202,13 @@ class DiscordClient(discord.Client):
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log edited message. " + str(e))
 
+async def log_cleanup():
+	await client.wait_until_ready()
+	channel = client.get_channel(config.log_channels.get(354565059675947009))
+	while(True):
+		async for messages in channel.history(limit=None):
+			if(datetime.datetime.now().timestamp() - messages.created_at.timestamp() > 86400):
+				await messages.delete()
 
 def hasApprovedRole(discordUser):
     for role in discordUser.roles:
@@ -212,4 +219,5 @@ def hasApprovedRole(discordUser):
 
 if (__name__ == "__main__"):
     client = DiscordClient()
+    client.loog.create_task(log_cleanup())
     client.run(apikeys.discordkey)
