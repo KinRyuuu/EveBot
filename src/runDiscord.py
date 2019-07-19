@@ -219,5 +219,5 @@ def hasApprovedRole(discordUser):
 
 if (__name__ == "__main__"):
     client = DiscordClient()
-    client.loog.create_task(log_cleanup())
+    client.loop.create_task(log_cleanup())
     client.run(apikeys.discordkey)
