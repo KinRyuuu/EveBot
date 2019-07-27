@@ -1,6 +1,5 @@
 # Run the bot as a discord client
 import random
-import datetime
 import discord
 import os
 import evebot
@@ -202,15 +201,6 @@ class DiscordClient(discord.Client):
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log edited message. " + str(e))
 
-async def log_cleanup():
-        await client.wait_until_ready()
-        channel = client.get_channel(config.log_channels.get(354565059675947009))
-        while(True):
-            async for messages in channel.history(limit=None):
-                if(datetime.datetime.now().timestamp() - messages.created_at.timestamp() > 86400):
-                    await messages.delete()
-            time.sleep(86400)
-
 def hasApprovedRole(discordUser):
     for role in discordUser.roles:
         if role.id in config.approved_roles.get(discordUser.guild.id, []):
@@ -220,5 +210,4 @@ def hasApprovedRole(discordUser):
 
 if (__name__ == "__main__"):
     client = DiscordClient()
-    client.loop.create_task(log_cleanup())
     client.run(apikeys.discordkey)
