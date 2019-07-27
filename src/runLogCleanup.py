@@ -42,7 +42,7 @@ class CleanupClient(discord.Client):
             time.sleep(1)
 
         logger.info(str(messages) + " messages deleted.")
-        self.close()
+        await self.close()
 
 if(__name__ == "__main__"):
     client = CleanupClient()
