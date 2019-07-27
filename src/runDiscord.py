@@ -143,6 +143,7 @@ class DiscordClient(discord.Client):
 
         embed.add_field(name="User", value = message.author.name + "#" + message.author.discriminator, inline=False)
         embed.add_field(name="ID", value = str(message.author.id), inline=False)
+        embed.add_field(name="Timestamp", value = str(message.created_at), inline = False)
         embed.add_field(name="Channel", value = "<#"+str(message.channel.id)+">", inline=False)
         embed.add_field(name="Content", value = message.content, inline=False)
         
@@ -179,7 +180,7 @@ class DiscordClient(discord.Client):
         
         log_channel_id = config.log_channels.get(before.guild.id)
         log_channel = discord.utils.get(before.guild.text_channels, id=log_channel_id)
-        embed = discord.Embed(title="Message Editeed", 
+        embed = discord.Embed(title="Message Edited", 
                               type="rich",
                               description=Template("A message from $author was edited in #$channel").substitute(
                                   author=before.author.name,
