@@ -6,7 +6,7 @@ bot_name = "Eve Bot"
 # Message edits and deletes for each guild will be posted here.
 log_channels = {
     384144475229782037: 574416190802231316, # Test server
-    354565059675947009: 499292048097148928  # TMHC
+    354565059675947009: 604787076021485589  # TMHC
 }
 
 # A list of role ids who are approved to use commands, keyed by guild id
