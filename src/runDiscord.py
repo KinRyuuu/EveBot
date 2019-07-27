@@ -209,6 +209,7 @@ async def log_cleanup():
 		async for messages in channel.history(limit=None):
 			if(datetime.datetime.now().timestamp() - messages.created_at.timestamp() > 86400):
 				await messages.delete()
+                time.sleep(86400)
 
 def hasApprovedRole(discordUser):
     for role in discordUser.roles:
