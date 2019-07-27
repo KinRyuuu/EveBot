@@ -1,6 +1,6 @@
 # Run the bot as a discord client
 import random
-
+import datetime
 import discord
 import os
 import evebot
