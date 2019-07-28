@@ -141,7 +141,7 @@ class DiscordClient(discord.Client):
         if(message.content == ""):
             message.content = "None"
 
-        embed.add_field(name="User", value = message.author.name + "#" + message.author.discriminator, inline=False)
+        embed.add_field(name="User", value = "<@" + str(message.author.id) + ">", inline=False)
         embed.add_field(name="ID", value = str(message.author.id), inline=False)
         embed.add_field(name="Timestamp", value = str(message.created_at), inline = False)
         embed.add_field(name="Channel", value = "<#"+str(message.channel.id)+">", inline=False)
@@ -187,7 +187,7 @@ class DiscordClient(discord.Client):
                                   channel=before.channel.name),
                               colour=0xffff00)
 
-        embed.add_field(name="User", value = before.author.name + "#" + before.author.discriminator, inline = False)
+        embed.add_field(name="User", value = "<@" + str(before.author.id) + ">", inline = False)
         embed.add_field(name="ID", value = str(before.author.id), inline = False)
         embed.add_field(name="Channel", value = "<#"+str(before.channel.id)+">", inline = False)
         embed.add_field(name="Original message", value = str(before.content), inline = False)
