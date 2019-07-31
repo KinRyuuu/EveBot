@@ -36,10 +36,13 @@ class CleanupClient(discord.Client):
                     for message in message_list:
                         await message.delete()
                         time.sleep(1)
-
-        for message in message_list:
-            await message.delete()
+        try:
+            await self.delete_messages(message_list)
             time.sleep(1)
+        except:
+            for message in message_list:
+                await message.delete()
+                time.sleep(1)
 
         logger.info(str(messages) + " messages deleted.")
         await self.close()
