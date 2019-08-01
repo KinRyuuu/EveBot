@@ -30,16 +30,18 @@ class CleanupClient(discord.Client):
 
             if len(message_list) == 100:
                 try:
-                    await self.delete_messages(message_list)
+                    await channel.delete_messages(message_list)
                     time.sleep(1)
-                except:
+                except Exception as e:
+                    print(e)
                     for message in message_list:
                         await message.delete()
                         time.sleep(1)
         try:
-            await self.delete_messages(message_list)
+            await channel.delete_messages(message_list)
             time.sleep(1)
-        except:
+        except Exception as e:
+            print(e)
             for message in message_list:
                 await message.delete()
                 time.sleep(1)
