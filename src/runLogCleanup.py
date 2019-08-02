@@ -16,19 +16,17 @@ else:
 class CleanupClient(discord.Client):
     async def on_ready(self):
         logger.info("Initiating log cleanup.")
-        messages = 0
         channel = self.get_channel(config.log_channels.get(354565059675947009))
         if(channel is None):
             logger.error("Unable to find log channel!")
-        
+        messg_count = 0 
         message_list = []
 
         async for message in channel.history(limit=None):
             if(datetime.datetime.now().timestamp() - message.created_at.timestamp() > 86400):
                 message_list.append(message)
-                messages += 1
-
-            if len(message_list) == 100:
+                messg_count += 1
+            if len(message_list) == 99:
                 try:
                     await channel.delete_messages(message_list)
                     time.sleep(1)
@@ -46,7 +44,7 @@ class CleanupClient(discord.Client):
                 await message.delete()
                 time.sleep(1)
 
-        logger.info(str(messages) + " messages deleted.")
+        logger.info(str(messg_count) + " messages deleted.")
         await self.close()
 
 if(__name__ == "__main__"):
