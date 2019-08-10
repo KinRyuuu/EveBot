@@ -31,18 +31,20 @@ class CleanupClient(discord.Client):
                     await channel.delete_messages(message_list)
                     time.sleep(1)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
                     for message in message_list:
                         await message.delete()
                         time.sleep(1)
+                message_list = []
         try:
             await channel.delete_messages(message_list)
             time.sleep(1)
         except Exception as e:
-            print(e)
+            logger.error(e)
             for message in message_list:
                 await message.delete()
                 time.sleep(1)
+        message_list = []
 
         logger.info(str(messg_count) + " messages deleted.")
         await self.close()
