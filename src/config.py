@@ -5,6 +5,7 @@ bot_name = "Eve Bot"
 servers = {
     "Test": 384144475229782037,
     "TMHC": 354565059675947009,
+    "TMHCRND": 371995067386429442
 }
 
 roles = {
