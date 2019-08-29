@@ -78,8 +78,9 @@ async def addrolereactable(command, metadata, sendReply):
     except Exception as e:
         session.rollback()
         logger.error("Unable to commit to database: " + e)
-
-    return await sendReply("Added role react for "+role.name)
+    
+    await metadata["message"].delete() # delete the invoking message
+    return await sendReply("Added role react for "+role.name, delete_after=5)
 
 @restrictions(config.servers.get("TMHC"), config.servers.get("Test"))
 @tag_reactables()

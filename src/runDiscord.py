@@ -9,7 +9,7 @@ import logging
 from string import Template
 from models import Service, Server, Chat, User, Session, get_or_create
 from helpers import commandHelpers
-
+import asyncio
 logger = logging.getLogger(__name__)
 
 # Only log debug messages in debug mode
@@ -63,7 +63,7 @@ class DiscordClient(discord.Client):
             return
 
         # Processes messages from commands and handles errors.
-        async def sendReply(text, edit=False, append=False, **kwargs):
+        async def sendReply(text, edit=False, append=False, delete_after=None, **kwargs):
             # Attempts to send a message up to MAX_RETRY times because sometimes discord is rubbish
             MAX_RETRY = 3
             
@@ -71,9 +71,9 @@ class DiscordClient(discord.Client):
                 if(count < MAX_RETRY):
                     try:
                         if(edit):
-                            return await message.edit(text)
+                            return await edit.edit(text)
                         elif(append):
-                            return await message.edit(message.content + text)
+                            return await append.edit(message.content + text)
 
                         return await message.channel.send(text)
                     except discord.HTTPException as e:
@@ -81,11 +81,15 @@ class DiscordClient(discord.Client):
                         return await attempt(count + 1)
                     except discord.Forbidden as e:
                         logger.error("Cannot send message - permission forbidden! " + str(e))
-
+                
                 return None
 
             if text != "":
-                return await attempt()
+                del_message = await attempt()
+                
+                if(delete_after is not None and del_message is not None):
+                    await asyncio.sleep(delete_after)
+                    await del_message.delete()
             return None
 
         if(self.eve):
