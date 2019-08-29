@@ -12,6 +12,9 @@ from helpers import commandHelpers
 import asyncio
 logger = logging.getLogger(__name__)
 
+logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("websockets").setLevel(logging.WARNING)
+
 # Only log debug messages in debug mode
 if (config.DEBUG):
     logging.basicConfig(level=logging.DEBUG)
@@ -90,6 +93,8 @@ class DiscordClient(discord.Client):
                 if(delete_after is not None and del_message is not None):
                     await asyncio.sleep(delete_after)
                     await del_message.delete()
+                    return None
+                return del_message
             return None
 
         if(self.eve):
@@ -147,7 +152,7 @@ class DiscordClient(discord.Client):
 
         # runs only on debug channels if debug is enabled.
         if config.DEBUG:
-            if message.channel.id not in config.debug_channel_ids:
+            if before.channel.id not in config.debug_channel_ids:
                 return
 
         # Don't trigger this when bot messages are edited to avoid loops
@@ -203,7 +208,8 @@ class DiscordClient(discord.Client):
         try:
             message = await channel.fetch_message(event.message_id)
         except (NotFound, Forbidden, HTTPException) as e:
-            logger.debug("Error processing reaction_add: " + str(e))
+            logger.error("Error processing reaction_add: " + str(e))
+            return
             
         guild = self.get_guild(event.guild_id)
         if(guild == None): 

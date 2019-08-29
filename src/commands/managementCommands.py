@@ -3,6 +3,7 @@ import asyncio
 import config
 import logging
 from models import TagReactables
+from rolemessages import TMHCRoles, TestRoles
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,36 @@ async def vet(command, metadata, sendReply):
         pass
 
 @restrictions(config.servers.get("TMHC"), config.servers.get("Test"))
+@command("regenroles")
+@help_text("Regenerate the roles text")
+async def regenroles(command, metadata, sendReply):
+    if(metadata["server"].id == config.servers["TMHC"]):
+        rolearray = TMHCRoles.rolearray
+    elif(metadata["server"].id == config.servers["Test"]):
+        rolearray = TestRoles.rolearray
+    else:
+        return await sendReply("An error occurred!")
+    
+    guild = metadata["message"].guild
+    channel = guild.get_channel(int(config.roles_channel.get(metadata["server"].id)))
+
+    await clearChannel(channel)    
+    
+    for element in rolearray:
+        if(isinstance(element, str)):
+            await sendReply(element)
+            await asyncio.sleep(1)
+        elif(isinstance(element, tuple)):
+            message = await sendReply(element[1])
+            role = guild.get_role(int(element[0])) 
+
+            if(role is None):
+                return await sendReply("An error occurred!")
+
+            await do_add_role_reactable(message, role.id, metadata)
+            await asyncio.sleep(1)
+
+@restrictions(config.servers.get("TMHC"), config.servers.get("Test"))
 @command("addrolereactable")
 @help_text("Allow reactions on a message to assign a role. Usage: 'addrolereactable <messageid> <roleid>' in the channel containing the message.")
 async def addrolereactable(command, metadata, sendReply):
@@ -61,6 +92,13 @@ async def addrolereactable(command, metadata, sendReply):
         logger.exception(e)
         return await sendReply("No message with that id was found")
    
+    await do_add_role_reactable(message, roleid, metadata)
+    
+    await metadata["message"].delete() # delete the invoking message
+    return await sendReply("Added role react for "+role.name, delete_after=5)
+
+
+async def do_add_role_reactable(message, roleid, metadata):
     emoji = "🔼"
     await message.add_reaction(emoji)
 
@@ -78,9 +116,6 @@ async def addrolereactable(command, metadata, sendReply):
     except Exception as e:
         session.rollback()
         logger.error("Unable to commit to database: " + e)
-    
-    await metadata["message"].delete() # delete the invoking message
-    return await sendReply("Added role react for "+role.name, delete_after=5)
 
 @restrictions(config.servers.get("TMHC"), config.servers.get("Test"))
 @tag_reactables()
@@ -120,4 +155,33 @@ async def toggle_role(args, event_type, metadata):
         except Exception as e:
             logger.exception(e)
 
+
+
+async def clearChannel(channel):
+    message_list = []
+    messg_count = 0
+
+    async for message in channel.history(limit=None):
+        message_list.append(message)
+        messg_count += 1
+        
+        if len(message_list) == 99:
+            try:
+                await channel.delete_messages(message_list)
+                await asyncio.sleep(1)
+            except Exception as e:
+                logger.error(e)
+                for message in message_list:
+                    await message.delete()
+                    await asyncio.sleep(1)
+            message_list = []
+    try:
+        await channel.delete_messages(message_list)
+        await asyncio.sleep(1)
+    except Exception as e:
+        logger.error(e)
+        for message in message_list:
+            await message.delete()
+            await asyncio.sleep(1)
+    message_list = []
 

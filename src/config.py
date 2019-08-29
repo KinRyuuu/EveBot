@@ -39,7 +39,8 @@ DEBUG = os.environ.get('BOT_DEBUG', False) is not False
 # If running in debug mode, the bot will be restricted to channel ids in the following array.
 debug_channel_ids = [
     384144475670446081, # Test channels
-    574416190802231316
+    574416190802231316,
+    616723907915022339
 ]
 
 # The roles to assign after accepting the coc
@@ -47,6 +48,11 @@ coc_roles = {
     # TMHC: No Hat and 404
     servers["TMHC"]: [roles["TMHC"]["No Hat"], roles["TMHC"]["404"]],
     servers["Test"]: [roles["Test"]["COC"]]
+}
+
+roles_channel = {
+    servers["TMHC"]: 616700269589430274,
+    servers["Test"]: 616723907915022339
 }
 
 ROOT_DIR = os.path.dirname(sys.modules['__main__'].__file__)

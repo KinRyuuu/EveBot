@@ -48,15 +48,15 @@ def tag_reactables():
         return function
     return registrar
 
-def get_help_message():
+def get_help_message(server):
     helpData = {}
 
     # get help data (commands, their aliases, and their help text)
     for given_command in commandsDict:
         function_name = commandsDict[given_command].__name__
-
+    
         # If help text exists for this command and the command is able to be used in the server
-        if (function_name in help_texts.keys() and restrictionsDict.get(given_command, None) is not None):
+        if (function_name in help_texts.keys() and (restrictionsDict.get(given_command, None) is None or server in restrictionsDict.get(given_command, None))):
             if (not (function_name in helpData.keys())):
                 helpData[function_name] = {"helpText": help_texts[function_name], "aliases": [given_command]}
             else:
@@ -75,9 +75,8 @@ def get_help_message():
 from commands import *
 
 #Generate help text
-help_message = get_help_message()
-
 @help_text("This command will display help text.")
 @command("help")
 async def help(command, metadata, sendReply):
+    help_message = get_help_message(metadata["server"].id)
     await basicResponseHelpers.sendInStages(help_message, sendReply)
