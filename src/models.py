@@ -51,6 +51,13 @@ class Chat(Base):
     chat_name = Column(String(100))
     nsfw = Column(Boolean(create_constraint=False))
 
+class TagReactables(Base):
+    __tablename__="tagreactables"
+
+    message_id = Column(String(20), primary_key=True)
+    function_name = Column(String(50))   # Used to find the function to use
+    function_args = Column(String(100))  # Used as args to the function (e.g, in order to specify roles to assign)
+
 def get_or_create(session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
