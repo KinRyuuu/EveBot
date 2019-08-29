@@ -12,7 +12,7 @@ roles = {
         "Mods": 501445228553699328,
         "Staff": 399654133470199820,
         "Owners": 354565435514945536,
-        "No Hat": 559099713400602624,
+        "Member": 559099713400602624,
         "404": 501818944567640084
     },
     "Test": {
@@ -46,7 +46,7 @@ debug_channel_ids = [
 # The roles to assign after accepting the coc
 coc_roles = {
     # TMHC: No Hat and 404
-    servers["TMHC"]: [roles["TMHC"]["No Hat"], roles["TMHC"]["404"]],
+    servers["TMHC"]: [roles["TMHC"]["404"]],
     servers["Test"]: [roles["Test"]["COC"]]
 }
 

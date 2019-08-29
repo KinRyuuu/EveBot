@@ -218,6 +218,10 @@ class DiscordClient(discord.Client):
         user = self.get_user(event.user_id)
         if(user == None):
             return
+        
+        # other bots are unworthy of our attention
+        if user.bot == True:
+            return
 
         # runs only on debug channels if debug is enabled.
         if config.DEBUG:
