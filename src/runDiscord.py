@@ -89,28 +89,9 @@ class DiscordClient(discord.Client):
             return None
 
         if(self.eve):
-            try:
-                session = Session()
-                session.expire_on_commit = False
-
-                if(message.guild):
-                    current_server = Server(id=message.guild.id, service_id=self.service.id, server_name=message.guild.name)
-                else:
-                    current_server = None
-
-                current_user = User(id=message.author.id, service_id=self.service.id, username=message.author.display_name)
-
-                if(message.channel.name):
-                    current_channel = Chat(id=message.channel.id, server_id=current_server.id, chat_name=message.channel.name, nsfw=message.channel.is_nsfw())
-                else:
-                    current_channel = get_or_create(session, Chat, id=message.channel.id, server_id=current_server.id, chat_name=message.channel.id)
-
-            except Exception as e:
-                logger.error("Couldn't get data from message! " + str(e))
+            metadata = await self.constructMetadata(message)
+            if(metadata is None):
                 return
-            
-            # Metadata for use by commands and reactions
-            metadata = {"session": session, "service": self.service, "user":current_user, "server":current_server, "chat":current_channel}
 
             # Actually process the message
             try:
@@ -201,6 +182,78 @@ class DiscordClient(discord.Client):
             logger.error("Could not log edited message. " + str(e))
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log edited message. " + str(e))
+
+
+    async def on_raw_reaction_add(self, event):
+        await self.do_raw_reactions(event, "REACTION_ADD")
+        
+    async def on_raw_reaction_remove(self, event):
+        await self.do_raw_reactions(event, "REACTION_REMOVE")
+
+    async def do_raw_reactions(self, event, event_type):
+        channel = self.get_channel(event.channel_id)
+
+        if(channel is None):
+            return
+    
+        try:
+            message = await channel.fetch_message(event.message_id)
+        except (NotFound, Forbidden, HTTPException) as e:
+            logger.debug("Error processing reaction_add: " + str(e))
+            
+        guild = self.get_guild(event.guild_id)
+        if(guild == None): 
+            return
+        
+        user = self.get_user(event.user_id)
+        if(user == None):
+            return
+
+        # runs only on debug channels if debug is enabled.
+        if config.DEBUG:
+            if message.channel.id not in config.debug_channel_ids:
+                return
+
+        if(self.eve):
+            
+            metadata = await self.constructMetadata(message)
+            if(metadata is None):
+                return
+
+            metadata["user"] = user
+            metadata["event"] = event
+
+            # Actually process the message
+            try:
+                await self.eve.doTagReacts(event_type, metadata)
+            except Exception as e:
+                logger.error("Error processing tag reaction: " + str(e))
+
+
+    async def constructMetadata(self, message):
+        try:
+            session = Session()
+            session.expire_on_commit = False
+
+            if(message.guild):
+                current_server = Server(id=message.guild.id, service_id=self.service.id, server_name=message.guild.name)
+            else:
+                current_server = None
+
+            current_user = User(id=message.author.id, service_id=self.service.id, username=message.author.display_name)
+
+            if(message.channel.name):
+                current_channel = Chat(id=message.channel.id, server_id=current_server.id, chat_name=message.channel.name, nsfw=message.channel.is_nsfw())
+            else:
+                current_channel = get_or_create(session, Chat, id=message.channel.id, server_id=current_server.id, chat_name=message.channel.id)
+
+        except Exception as e:
+            logger.error("Couldn't get data from message! " + str(e))
+            return None
+        
+        # Metadata for use by commands and reactions
+        metadata = {"session": session, "service": self.service, "user":current_user, "server":current_server, "chat":current_channel, "message":message, "client":self}
+        return metadata
 
 def hasApprovedRole(discordUser):
     for role in discordUser.roles:

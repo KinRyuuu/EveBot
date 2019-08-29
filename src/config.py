@@ -2,17 +2,35 @@ import os, sys
 
 bot_name = "Eve Bot"
 
+servers = {
+    "Test": 384144475229782037,
+    "TMHC": 354565059675947009,
+}
+
+roles = {
+    "TMHC": {
+        "Mods": 501445228553699328,
+        "Staff": 399654133470199820,
+        "Owners": 354565435514945536,
+        "No Hat": 559099713400602624,
+        "404": 501818944567640084
+    },
+    "Test": {
+        "Admin": 574564780350636032,
+        "COC": 616655951193178114
+    }
+}
 # Log channels for servers in the form (guild_id : channel id), one per guild.
 # Message edits and deletes for each guild will be posted here.
 log_channels = {
-    384144475229782037: 574416190802231316, # Test server
-    354565059675947009: 604787076021485589  # TMHC
+    servers["Test"]: 574416190802231316, # Test server
+    servers["TMHC"]: 604787076021485589  # TMHC
 }
 
 # A list of role ids who are approved to use commands, keyed by guild id
 approved_roles = {
-    384144475229782037: [574564780350636032], # Test server
-    354565059675947009: [501445228553699328, 399654133470199820, 354565435514945536] # TMHC
+    servers["Test"]: [roles["Test"]["Admin"]], # Test server
+    servers["TMHC"]: [roles["TMHC"]["Mods"], roles["TMHC"]["Staff"], roles["TMHC"]["Owners"]] # TMHC
 }
 
 # Whether or not to run in debug mode is determined by the presence of an environment variable
@@ -23,6 +41,13 @@ debug_channel_ids = [
     384144475670446081, # Test channels
     574416190802231316
 ]
+
+# The roles to assign after accepting the coc
+coc_roles = {
+    # TMHC: No Hat and 404
+    servers["TMHC"]: [roles["TMHC"]["No Hat"], roles["TMHC"]["404"]],
+    servers["Test"]: [roles["Test"]["COC"]]
+}
 
 ROOT_DIR = os.path.dirname(sys.modules['__main__'].__file__)
 RESPONSE_DIR = os.path.join(ROOT_DIR, "responses")
