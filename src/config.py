@@ -45,7 +45,6 @@ debug_channel_ids = [
 
 # The roles to assign after accepting the coc
 coc_roles = {
-    # TMHC: No Hat and 404
     servers["TMHC"]: [roles["TMHC"]["404"]],
     servers["Test"]: [roles["Test"]["COC"]]
 }
