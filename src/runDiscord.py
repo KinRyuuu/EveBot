@@ -9,8 +9,11 @@ import logging
 from string import Template
 from models import Service, Server, Chat, User, Session, get_or_create
 from helpers import commandHelpers
-
+import asyncio
 logger = logging.getLogger(__name__)
+
+logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("websockets").setLevel(logging.WARNING)
 
 # Only log debug messages in debug mode
 if (config.DEBUG):
@@ -63,7 +66,7 @@ class DiscordClient(discord.Client):
             return
 
         # Processes messages from commands and handles errors.
-        async def sendReply(text, edit=False, append=False, **kwargs):
+        async def sendReply(text, edit=False, append=False, delete_after=None, **kwargs):
             # Attempts to send a message up to MAX_RETRY times because sometimes discord is rubbish
             MAX_RETRY = 3
             
@@ -71,9 +74,9 @@ class DiscordClient(discord.Client):
                 if(count < MAX_RETRY):
                     try:
                         if(edit):
-                            return await message.edit(text)
+                            return await edit.edit(text)
                         elif(append):
-                            return await message.edit(message.content + text)
+                            return await append.edit(message.content + text)
 
                         return await message.channel.send(text)
                     except discord.HTTPException as e:
@@ -81,36 +84,23 @@ class DiscordClient(discord.Client):
                         return await attempt(count + 1)
                     except discord.Forbidden as e:
                         logger.error("Cannot send message - permission forbidden! " + str(e))
-
+                
                 return None
 
             if text != "":
-                return await attempt()
+                del_message = await attempt()
+                
+                if(delete_after is not None and del_message is not None):
+                    await asyncio.sleep(delete_after)
+                    await del_message.delete()
+                    return None
+                return del_message
             return None
 
         if(self.eve):
-            try:
-                session = Session()
-                session.expire_on_commit = False
-
-                if(message.guild):
-                    current_server = Server(id=message.guild.id, service_id=self.service.id, server_name=message.guild.name)
-                else:
-                    current_server = None
-
-                current_user = User(id=message.author.id, service_id=self.service.id, username=message.author.display_name)
-
-                if(message.channel.name):
-                    current_channel = Chat(id=message.channel.id, server_id=current_server.id, chat_name=message.channel.name, nsfw=message.channel.is_nsfw())
-                else:
-                    current_channel = get_or_create(session, Chat, id=message.channel.id, server_id=current_server.id, chat_name=message.channel.id)
-
-            except Exception as e:
-                logger.error("Couldn't get data from message! " + str(e))
+            metadata = await self.constructMetadata(message)
+            if(metadata is None):
                 return
-            
-            # Metadata for use by commands and reactions
-            metadata = {"session": session, "service": self.service, "user":current_user, "server":current_server, "chat":current_channel}
 
             # Actually process the message
             try:
@@ -162,7 +152,7 @@ class DiscordClient(discord.Client):
 
         # runs only on debug channels if debug is enabled.
         if config.DEBUG:
-            if message.channel.id not in config.debug_channel_ids:
+            if before.channel.id not in config.debug_channel_ids:
                 return
 
         # Don't trigger this when bot messages are edited to avoid loops
@@ -201,6 +191,83 @@ class DiscordClient(discord.Client):
             logger.error("Could not log edited message. " + str(e))
         except discord.Forbidden as e:
             logger.error("Do not have permissions to log edited message. " + str(e))
+
+
+    async def on_raw_reaction_add(self, event):
+        await self.do_raw_reactions(event, "REACTION_ADD")
+        
+    async def on_raw_reaction_remove(self, event):
+        await self.do_raw_reactions(event, "REACTION_REMOVE")
+
+    async def do_raw_reactions(self, event, event_type):
+        channel = self.get_channel(event.channel_id)
+
+        if(channel is None):
+            return
+    
+        try:
+            message = await channel.fetch_message(event.message_id)
+        except (NotFound, Forbidden, HTTPException) as e:
+            logger.error("Error processing reaction_add: " + str(e))
+            return
+            
+        guild = self.get_guild(event.guild_id)
+        if(guild == None): 
+            return
+        
+        user = self.get_user(event.user_id)
+        if(user == None):
+            return
+        
+        # other bots are unworthy of our attention
+        if user.bot == True:
+            return
+
+        # runs only on debug channels if debug is enabled.
+        if config.DEBUG:
+            if message.channel.id not in config.debug_channel_ids:
+                return
+
+        if(self.eve):
+            
+            metadata = await self.constructMetadata(message)
+            if(metadata is None):
+                return
+
+            metadata["user"] = user
+            metadata["event"] = event
+
+            # Actually process the message
+            try:
+                await self.eve.doTagReacts(event_type, metadata)
+            except Exception as e:
+                logger.error("Error processing tag reaction: " + str(e))
+
+
+    async def constructMetadata(self, message):
+        try:
+            session = Session()
+            session.expire_on_commit = False
+
+            if(message.guild):
+                current_server = Server(id=message.guild.id, service_id=self.service.id, server_name=message.guild.name)
+            else:
+                current_server = None
+
+            current_user = User(id=message.author.id, service_id=self.service.id, username=message.author.display_name)
+
+            if(message.channel.name):
+                current_channel = Chat(id=message.channel.id, server_id=current_server.id, chat_name=message.channel.name, nsfw=message.channel.is_nsfw())
+            else:
+                current_channel = get_or_create(session, Chat, id=message.channel.id, server_id=current_server.id, chat_name=message.channel.id)
+
+        except Exception as e:
+            logger.error("Couldn't get data from message! " + str(e))
+            return None
+        
+        # Metadata for use by commands and reactions
+        metadata = {"session": session, "service": self.service, "user":current_user, "server":current_server, "chat":current_channel, "message":message, "client":self}
+        return metadata
 
 def hasApprovedRole(discordUser):
     for role in discordUser.roles:

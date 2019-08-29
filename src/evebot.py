@@ -3,6 +3,7 @@ import commandRegistry
 import re
 import config
 import logging
+from models import TagReactables
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class EveBot:
     async def read(self, message, metadata, sendReply):
         allCommands = commandRegistry.commandsDict
         allReactions = commandRegistry.reactionsDict
+        allRestrictions = commandRegistry.restrictionsDict
         
         if(metadata.get("user").id != self.user.id):
             # If this message is a command, read it
@@ -36,13 +38,37 @@ class EveBot:
                 command = commandHelpers.get_command(message)
                 
                 try:
-                    return await allCommands[command[0]](command, metadata, sendReply)
+
+                    command_func = allCommands[command[0]]
+
+                    if(allRestrictions.get(command_func, None) is None):
+                        return await command_func(command, metadata, sendReply)
+                    elif(metadata.get("server").id in allRestrictions.get(command_func)):
+                        return await command_func(command, metadata, sendReply)
+
                 except KeyError as err:
                     logger.debug("Couldn't find command " + str(err))
             
             # Scan message looking for content to react to
             return await self.doReacts(allReactions, message, metadata, sendReply)
 
-    
+    # Deal with users tagging messages with emojis
+    async def doTagReacts(self, event_type, metadata):
+        allTagReacts = commandRegistry.tagReactablesDict
+        allRestrictions = commandRegistry.restrictionsDict
+        
+        session = metadata.get("session")
+        reactable = session.query(TagReactables).filter_by(message_id=metadata.get("message").id).first()
+
+        if(reactable is None):
+            return
+
+        command = allTagReacts[reactable.function_name]
+        
+        if(allRestrictions.get(command, None) is None):
+            return await command(reactable.function_args, event_type, metadata)
+        elif(metadata.get("server").id in allRestrictions.get(command)):
+            return await command(reactable.function_args, event_type, metadata)
+
     def __init__(self, thisUser):
         self.user = thisUser
