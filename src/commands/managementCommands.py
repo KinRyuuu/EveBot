@@ -26,7 +26,7 @@ async def ping(command, metadata, sendReply):
     return await sendReply("Pong")
 
 
-@restrictions(371995067386429442)
+@restrictions(config.servers.get("TMHCRND"))
 @help_text("Vet a member for the server. \n\
            approve: vote to approve the member (requires at least two approvals).\n\
            deny: vote to deny the member (only one deny required, but if a deny occurs \
