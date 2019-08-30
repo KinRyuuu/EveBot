@@ -5,6 +5,7 @@ bot_name = "Eve Bot"
 servers = {
     "Test": 384144475229782037,
     "TMHC": 354565059675947009,
+    "TMHCRND": 371995067386429442
 }
 
 roles = {
@@ -45,11 +46,13 @@ debug_channel_ids = [
 
 # The roles to assign after accepting the coc
 coc_roles = {
-    # TMHC: No Hat and 404
     servers["TMHC"]: [roles["TMHC"]["404"]],
     servers["Test"]: [roles["Test"]["COC"]]
 }
 
+member_role = {
+    servers["TMHC"]: roles["TMHC"]["Member"]
+}
 roles_channel = {
     servers["TMHC"]: 616700269589430274,
     servers["Test"]: 616723907915022339

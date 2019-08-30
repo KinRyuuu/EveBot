@@ -26,7 +26,7 @@ async def ping(command, metadata, sendReply):
     return await sendReply("Pong")
 
 
-@restrictions(371995067386429442)
+@restrictions(config.servers.get("TMHCRND"))
 @help_text("Vet a member for the server. \n\
            approve: vote to approve the member (requires at least two approvals).\n\
            deny: vote to deny the member (only one deny required, but if a deny occurs \
@@ -130,8 +130,11 @@ async def accept_coc(args, event_type, metadata):
         roles.append(guild.get_role(role))
 
     try:
-        userid = metadata.get("user").id
-        await guild.get_member(userid).add_roles(*roles)
+        user = await guild.get_member(metadata.get("user").id)
+        
+        # ensure user is not already a member and does not already have the coc role
+        if(config.member_role[metadata.get("server").id] not in user.roles and role[0] not in user.roles):
+            await guild.get_member(user.id).add_roles(*roles)
     except Exception as e:
         logger.exception(e)
 
