@@ -50,6 +50,9 @@ coc_roles = {
     servers["Test"]: [roles["Test"]["COC"]]
 }
 
+member_role = {
+    servers["TMHC"]: roles["TMHC"]["Member"]
+}
 roles_channel = {
     servers["TMHC"]: 616700269589430274,
     servers["Test"]: 616723907915022339
